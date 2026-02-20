@@ -49,11 +49,11 @@ iframe {
 
 
 <script>
-const map = L.map('map').setView([0,0], 13);
+const map = L.map('map').setView([0.05,0], 13);
 
 // your raster tiles
 L.tileLayer('tiles/{z}/{x}/{y}.png', {
-  minZoom: 8,
+  minZoom: 12,
   maxZoom: 16,
   noWrap: true
 }).addTo(map);
