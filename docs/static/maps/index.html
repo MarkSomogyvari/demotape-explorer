@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <title>Interactive Map</title>
@@ -10,7 +10,6 @@
 <!-- Markdown parser -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-
 <style>
 body {
   margin: 0;
@@ -18,23 +17,11 @@ body {
   height: 100vh;
   font-family: Arial, sans-serif;
 }
-#map {
-  width: 65%;
-  height: 100%;
-}
-#panel {
-  width: 35%;
-  padding: 15px;
-  overflow-y: auto;
-  border-left: 2px solid #ccc;
-}
-img {
-  max-width: 100%;
-}
-iframe {
-  width: 100%;
-  height: 250px;
-}
+#map { width: 65%; height: 100%; }
+#panel { width: 35%; padding: 15px; overflow-y: auto; border-left: 2px solid #ccc; }
+img { max-width: 100%; }
+iframe { width: 100%; height: 250px; }
+a { text-decoration: none; color: #284b63; }
 </style>
 </head>
 
@@ -46,13 +33,18 @@ iframe {
   <p>Click a marker to load content.</p>
 </div>
 
-
-
 <script>
+/**
+ * Automatically detect repo base path.
+ * Works both locally and on GitHub Pages.
+ */
+const repoBase = "/" + window.location.pathname.split('/')[1]; // "/demotape-explorer"
+
+// Initialize map
 const map = L.map('map').setView([0,0], 12);
 
-// your raster tiles
-L.tileLayer('tiles/{z}/{x}/{y}.png', {
+// Raster tiles
+L.tileLayer(`${repoBase}/tiles/{z}/{x}/{y}.png`, {
   minZoom: 8,
   maxZoom: 16,
   noWrap: true
@@ -60,55 +52,59 @@ L.tileLayer('tiles/{z}/{x}/{y}.png', {
 
 let activeMarker = null;
 
-// load points
-fetch('data/points-ai.geojson' + "?v=" + Date.now())
+// Load GeoJSON points
+fetch(`${repoBase}/data/points-ai.geojson?v=${Date.now()}`)
   .then(res => res.json())
   .then(data => {
     const geoLayer = L.geoJSON(data, {
-      pointToLayer: function(feature, latlng) {
-        return L.marker(latlng);
-      },
-      onEachFeature: function(feature, layer) {
-
-        layer.on('click', function() {
-
-          // highlight marker
-          if (activeMarker) {
-            activeMarker.getElement().classList.remove('active');
-          }
+      pointToLayer: (feature, latlng) => L.marker(latlng),
+      onEachFeature: (feature, layer) => {
+        layer.on('click', () => {
+          // Highlight marker
+          if (activeMarker) activeMarker.getElement().classList.remove('active');
           activeMarker = layer;
           layer.getElement().classList.add('active');
 
-          // load markdown
-          fetch(feature.properties.content_file)
+          // Build correct Markdown path in built site
+          // All markdown is in /static/maps/content/ after build
+          const mdPath = `${repoBase}/static/maps/${feature.properties.content_file}?v=${Date.now()}`;
+
+          fetch(mdPath)
             .then(r => r.text())
             .then(md => {
-			const repoName = window.location.pathname.split('/')[1];
+              let html = marked.parse(md);
 
-			const html = marked.parse(md);
+              // Fix image paths
+              html = html.replace(/src="images\//g, `src="${repoBase}/static/maps/images/`);
 
-			// fix image paths
-			const fixedHtml = html.replace(/src="images\//g, `src="/${repoName}/images/`);
+              // Backlink to Knowledge Platform
+              const backlink = `
+                <div style="margin-bottom: 10px;">
+                  <a href="${repoBase}/index/" style="font-weight: bold;">← Back to Knowledge Platform</a>
+                </div>
+              `;
 
-
-			//Backlink to wiki start
-			const base = window.location.origin;
-			const homeUrl = base + "/index/";
-
-			document.getElementById('panel').innerHTML = `
-			  <div style="margin-bottom: 10px;">
-				<a href="${homeUrl}" style="font-weight: bold;">← Back to Knowledge Platform</a>
-			  </div>
-			  <h2>${feature.properties.title}</h2>
-			  ${fixedHtml}
-			`;
-			});
-
+              document.getElementById('panel').innerHTML = `
+                ${backlink}
+                <h2>${feature.properties.title}</h2>
+                ${html}
+              `;
+            })
+            .catch(err => {
+              document.getElementById('panel').innerHTML = `
+                <div style="margin-bottom: 10px;">
+                  <a href="${repoBase}/index/" style="font-weight: bold;">← Back to Knowledge Platform</a>
+                </div>
+                <h2>${feature.properties.title}</h2>
+                <p style="color:red;">Error loading content: ${err.message}</p>
+              `;
+            });
         });
       }
     }).addTo(map);
 
-// map.fitBounds(geoLayer.getBounds());
+    // Optional: fit map to all points
+    if (geoLayer.getBounds().isValid()) map.fitBounds(geoLayer.getBounds());
   });
 </script>
 
