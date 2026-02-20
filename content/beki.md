@@ -1,8 +1,5 @@
----
-title: Beki catchment
----
-
-# Geography
+# Beki catchment
+## Geography
 
 _This is a bridge on the Beki river_
 

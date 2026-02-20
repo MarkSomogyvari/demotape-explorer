@@ -1,6 +1,5 @@
----
-title: A fake AI island
----
+# Another city
+
 Nullam id justo vitae est pellentesque maximus. Proin mi nisl, accumsan nec molestie vitae, consequat quis tellus. Quisque convallis tempor erat nec ultrices. Morbi et dignissim mi. Proin egestas pretium aliquet. Quisque purus lacus, pretium ut varius ac, eleifend vel arcu. Donec finibus laoreet est, id convallis metus fermentum tempus. Nullam orci nulla, aliquet ut ultricies quis, egestas ullamcorper turpis. Vestibulum sed tellus vel turpis luctus tincidunt. Curabitur consectetur fringilla rutrum.
 
 Proin vel ante id magna maximus convallis vitae non turpis. Nulla lobortis tortor eu fringilla porttitor. Curabitur porta, purus eu rutrum porttitor, quam enim tincidunt arcu, non bibendum sem metus nec magna. Cras malesuada condimentum porttitor. Fusce et consequat risus, in ultricies lacus. Quisque blandit aliquam dui, at sollicitudin nunc fringilla at. Morbi ultricies lacinia nulla, ac iaculis ex mollis non. Fusce ut volutpat ligula. Vivamus sollicitudin orci dignissim tellus dignissim vehicula. Ut odio purus, feugiat et dapibus ac, hendrerit vitae erat. Nullam vulputate leo vulputate nulla maximus ullamcorper. Donec eu ante non justo iaculis bibendum. Donec volutpat metus at hendrerit fermentum. Curabitur feugiat, mi sit amet faucibus aliquet, sapien diam imperdiet sem, eu rutrum nisl augue sit amet tortor.
