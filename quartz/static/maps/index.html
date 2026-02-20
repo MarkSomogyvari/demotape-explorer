@@ -9,6 +9,7 @@
 
 <!-- Markdown parser -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
 <!-- Frontmatter parser -->
 <script src="https://cdn.jsdelivr.net/npm/gray-matter@4.0.3/dist/gray-matter.min.js"></script>
 
@@ -19,16 +20,27 @@ body {
   height: 100vh;
   font-family: Arial, sans-serif;
 }
-#map { width: 65%; height: 100%; }
+#map {
+  width: 65%;
+  height: 100%;
+}
 #panel {
   width: 35%;
   padding: 15px;
   overflow-y: auto;
   border-left: 2px solid #ccc;
 }
-img { max-width: 100%; }
-iframe { width: 100%; height: 250px; }
-a { text-decoration: none; color: #284b63; }
+img {
+  max-width: 100%;
+}
+iframe {
+  width: 100%;
+  height: 250px;
+}
+a {
+  text-decoration: none;
+  color: #284b63;
+}
 </style>
 </head>
 
@@ -41,13 +53,13 @@ a { text-decoration: none; color: #284b63; }
 </div>
 
 <script>
-// Automatically detect repo base path
-const repoBase = "/" + window.location.pathname.split('/')[1]; // e.g., "/demotape-explorer"
+// Base path for GitHub Pages
+const basePath = "/demotape-explorer/static/maps/"; // adjust if your repo name changes
 
 const map = L.map('map').setView([0,0], 12);
 
 // Raster tiles
-L.tileLayer(`${repoBase}/tiles/{z}/{x}/{y}.png`, {
+L.tileLayer(`${basePath}tiles/{z}/{x}/{y}.png`, {
   minZoom: 8,
   maxZoom: 16,
   noWrap: true
@@ -56,44 +68,40 @@ L.tileLayer(`${repoBase}/tiles/{z}/{x}/{y}.png`, {
 let activeMarker = null;
 
 // Load GeoJSON points
-fetch(`${repoBase}/data/points-ai.geojson?v=${Date.now()}`)
+fetch(`${basePath}data/points-ai.geojson?v=${Date.now()}`)
   .then(res => res.json())
   .then(data => {
     const geoLayer = L.geoJSON(data, {
       pointToLayer: (feature, latlng) => L.marker(latlng),
       onEachFeature: (feature, layer) => {
         layer.on('click', () => {
+          // Highlight marker
           if (activeMarker) activeMarker.getElement().classList.remove('active');
           activeMarker = layer;
           layer.getElement().classList.add('active');
 
-          // Fetch Markdown file
-          fetch(`${repoBase}/${feature.properties.content_file}?v=${Date.now()}`)
+          // Load Markdown
+          fetch(`${basePath}${feature.properties.content_file}?v=${Date.now()}`)
             .then(r => r.text())
             .then(md => {
               // Parse frontmatter
-              const matterResult = window.matter(md);
-              const content = matterResult.content; // Markdown content without frontmatter
-              const title = matterResult.data.title || feature.properties.title;
+              const parsed = window.matter(md);
+              const content = parsed.content;
+              const title = parsed.data.title || feature.properties.title;
 
-              // Render Markdown
+              // Convert Markdown to HTML
               let html = marked.parse(content);
 
               // Fix image paths
-              html = html.replace(/src="images\//g, `src="${repoBase}/images/`);
+              html = html.replace(/src="images\//g, `src="${basePath}content/images/`);
 
               // Backlink
-              const backlink = `
-                <div style="margin-bottom: 10px;">
-                  <a href="${repoBase}/index/" style="font-weight: bold;">← Back to Knowledge Platform</a>
-                </div>
-              `;
+              const backlink = `<div style="margin-bottom:10px;">
+                                  <a href="/demotape-explorer/index/" style="font-weight:bold;">← Back to Knowledge Platform</a>
+                                </div>`;
 
-              document.getElementById('panel').innerHTML = `
-                ${backlink}
-                <h2>${title}</h2>
-                ${html}
-              `;
+              // Update panel
+              document.getElementById('panel').innerHTML = `${backlink}<h2>${title}</h2>${html}`;
             });
         });
       }
