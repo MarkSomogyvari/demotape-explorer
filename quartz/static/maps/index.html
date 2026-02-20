@@ -80,7 +80,7 @@ fetch('data/points-ai.geojson' + "?v=" + Date.now())
           layer.getElement().classList.add('active');
 
           // load markdown
-          fetch(feature.properties.content_file)
+          fetch(feature.properties.content_file + "?v=" + Date.now())
             .then(r => r.text())
             .then(md => {
 			const repoName = window.location.pathname.split('/')[1];
