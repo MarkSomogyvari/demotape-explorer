@@ -61,7 +61,7 @@ L.tileLayer('tiles/{z}/{x}/{y}.png', {
 let activeMarker = null;
 
 // load points
-fetch('data/points-ai.geojson' + "?v=" + Date.now())
+fetch('data/points-ai.geojson')
   .then(res => res.json())
   .then(data => {
     const geoLayer = L.geoJSON(data, {
