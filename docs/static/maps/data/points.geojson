@@ -1,0 +1,9 @@
+{
+"type": "FeatureCollection",
+"name": "points",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::3857" } },
+"features": [
+{ "type": "Feature", "properties": { "fid": 1, "title": "Barpeta bridge", "text": "Bridge across the Beki", "image": "images/harbor.jpg", "video": null }, "geometry": { "type": "Point", "coordinates": [ -4356046.761923452839255, 2326686.314496918115765 ] } },
+{ "type": "Feature", "properties": { "fid": 2, "title": "Jeker", "text": "The river is here", "image": null, "video": "https://www.youtube.com/watch?v=qyrp3aR-ytE" }, "geometry": { "type": "Point", "coordinates": [ -4485250.198115401901305, 2279359.048492541071028 ] } }
+]
+}
