@@ -17,27 +17,11 @@ body {
   height: 100vh;
   font-family: Arial, sans-serif;
 }
-#map {
-  width: 65%;
-  height: 100%;
-}
-#panel {
-  width: 35%;
-  padding: 15px;
-  overflow-y: auto;
-  border-left: 2px solid #ccc;
-}
-img {
-  max-width: 100%;
-}
-iframe {
-  width: 100%;
-  height: 250px;
-}
-a {
-  text-decoration: none;
-  color: #284b63;
-}
+#map { width: 65%; height: 100%; }
+#panel { width: 35%; padding: 15px; overflow-y: auto; border-left: 2px solid #ccc; }
+img { max-width: 100%; }
+iframe { width: 100%; height: 250px; }
+a { text-decoration: none; color: #284b63; }
 </style>
 </head>
 
@@ -54,8 +38,9 @@ a {
  * Automatically detect repo base path.
  * Works both locally and on GitHub Pages.
  */
-const repoBase = "/" + window.location.pathname.split('/')[1]; // e.g., "/demotape-explorer"
+const repoBase = "/" + window.location.pathname.split('/')[1]; // "/demotape-explorer"
 
+// Initialize map
 const map = L.map('map').setView([0,0], 12);
 
 // Raster tiles
@@ -80,14 +65,17 @@ fetch(`${repoBase}/data/points-ai.geojson?v=${Date.now()}`)
           activeMarker = layer;
           layer.getElement().classList.add('active');
 
-          // Load Markdown content
-          fetch(`${repoBase}/${feature.properties.content_file}?v=${Date.now()}`)
+          // Build correct Markdown path in built site
+          // All markdown is in /static/maps/content/ after build
+          const mdPath = `${repoBase}/static/maps/${feature.properties.content_file}?v=${Date.now()}`;
+
+          fetch(mdPath)
             .then(r => r.text())
             .then(md => {
               let html = marked.parse(md);
 
               // Fix image paths
-              html = html.replace(/src="images\//g, `src="${repoBase}/images/`);
+              html = html.replace(/src="images\//g, `src="${repoBase}/static/maps/images/`);
 
               // Backlink to Knowledge Platform
               const backlink = `
@@ -101,13 +89,22 @@ fetch(`${repoBase}/data/points-ai.geojson?v=${Date.now()}`)
                 <h2>${feature.properties.title}</h2>
                 ${html}
               `;
+            })
+            .catch(err => {
+              document.getElementById('panel').innerHTML = `
+                <div style="margin-bottom: 10px;">
+                  <a href="${repoBase}/index/" style="font-weight: bold;">← Back to Knowledge Platform</a>
+                </div>
+                <h2>${feature.properties.title}</h2>
+                <p style="color:red;">Error loading content: ${err.message}</p>
+              `;
             });
         });
       }
     }).addTo(map);
 
-    // Optional: fit map to bounds
-    // map.fitBounds(geoLayer.getBounds());
+    // Optional: fit map to all points
+    if (geoLayer.getBounds().isValid()) map.fitBounds(geoLayer.getBounds());
   });
 </script>
 
