@@ -9,6 +9,7 @@ import * as Plugin from "./quartz/plugins"
 const config: QuartzConfig = {
   configuration: {
 	contentDir: "../content",
+	outputDir: "../../public",  // <-- move output to root
     pageTitle: "Quartz 4",
     pageTitleSuffix: "",
     enableSPA: true,
