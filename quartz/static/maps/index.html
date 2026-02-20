@@ -91,16 +91,13 @@ fetch('data/points-ai.geojson' + "?v=" + Date.now())
 
 			//fix obsidian links
 			function convertWikilinks(md) {
+			  const siteBase = "https://marksomogyvari.github.io/demotape-explorer/";
+
 			  return md.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (match, target, alias) => {
-				const slug = target.trim().replace(/\s+/g, "-");
+				const slug = target.trim();
 				const text = alias ? alias.trim() : target.trim();
 
-				// detect GitHub Pages /docs or local
-				const basePath = window.location.pathname.includes("/docs/")
-				  ? "/docs/"
-				  : "/";
-
-				return `<a href="${basePath}${slug}/">${text}</a>`;
+				return `<a href="${siteBase}${slug}">${text}</a>`;
 			  });
 			}
 
