@@ -10,7 +10,6 @@
 <!-- Markdown parser -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-
 <style>
 body {
   margin: 0;
@@ -46,12 +45,14 @@ iframe {
   <p>Click a marker to load content.</p>
 </div>
 
-
-
 <script>
 const map = L.map('map').setView([0,0], 12);
 
-// your raster tiles
+// Compute the repo base dynamically
+const repoBase = "/" + window.location.pathname.split('/')[1]; 
+// e.g., "/demotape-explorer" on GitHub Pages
+
+// Raster tiles (relative to map HTML file)
 L.tileLayer('tiles/{z}/{x}/{y}.png', {
   minZoom: 8,
   maxZoom: 16,
@@ -60,57 +61,42 @@ L.tileLayer('tiles/{z}/{x}/{y}.png', {
 
 let activeMarker = null;
 
-// load points
-fetch('data/points-ai.geojson')
+// Load GeoJSON points (cache-busting with ?v=timestamp)
+fetch(`${repoBase}/static/maps/data/points-ai.geojson?v=${Date.now()}`)
   .then(res => res.json())
   .then(data => {
     const geoLayer = L.geoJSON(data, {
-      pointToLayer: function(feature, latlng) {
-        return L.marker(latlng);
-      },
-      onEachFeature: function(feature, layer) {
-
-        layer.on('click', function() {
-
-          // highlight marker
+      pointToLayer: (feature, latlng) => L.marker(latlng),
+      onEachFeature: (feature, layer) => {
+        layer.on('click', () => {
           if (activeMarker) {
             activeMarker.getElement().classList.remove('active');
           }
           activeMarker = layer;
           layer.getElement().classList.add('active');
 
-          // load markdown
-          fetch(feature.properties.content_file + "?v=" + Date.now())
+          // Load the markdown file
+          fetch(`${repoBase}/${feature.properties.content_file}?v=${Date.now()}`)
             .then(r => r.text())
             .then(md => {
-			const repoName = window.location.pathname.split('/')[1];
+              let html = marked.parse(md);
 
-			const html = marked.parse(md);
+              // Fix image paths to be repo-relative
+              html = html.replace(/src="images\//g, `src="${repoBase}/images/`);
 
-			// fix image paths
-			const fixedHtml = html.replace(/src="images\//g, `src="/${repoName}/images/`);
+              // Backlink to knowledge platform (repo-relative)
+              const backlink = `<div style="margin-bottom:10px;">
+                <a href="${repoBase}/index/" style="font-weight:bold;">← Back to Knowledge Platform</a>
+              </div>`;
 
-
-			//Backlink to wiki start
-			const base = window.location.origin;
-			//const base = mark.somogyvari.github.io/demotape-explorer
-			const homeUrl = base + "/index/";
-
-			document.getElementById('panel').innerHTML = `
-			  <div style="margin-bottom: 10px;">
-				//<a href="${homeUrl}" style="font-weight: bold;">← Back to Knowledge Platform</a>
-				<a href="../../index/">Return to Knowledge Platform</a>
-			  </div>
-			  <h2>${feature.properties.title}</h2>
-			  ${fixedHtml}
-			`;
-			});
-
+              document.getElementById('panel').innerHTML = backlink + html;
+            });
         });
       }
     }).addTo(map);
 
-// map.fitBounds(geoLayer.getBounds());
+    // Optional: fit map to markers
+    // map.fitBounds(geoLayer.getBounds());
   });
 </script>
 
