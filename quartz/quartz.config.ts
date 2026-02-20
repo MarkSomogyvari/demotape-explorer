@@ -13,7 +13,7 @@ const config: QuartzConfig = {
 	enableStaticOutput: true, 
     pageTitle: "Quartz 4",
     pageTitleSuffix: "",
-    enableSPA: true,
+    enableSPA: false,
     enablePopovers: true,
     analytics: {
       provider: "plausible",

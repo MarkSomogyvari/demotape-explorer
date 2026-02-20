@@ -51,6 +51,10 @@ iframe {
 <script>
 const map = L.map('map').setView([0.05,0], 13);
 
+setTimeout(() => {
+  map.invalidateSize();
+}, 200);
+
 // your raster tiles
 L.tileLayer('tiles/{z}/{x}/{y}.png', {
   minZoom: 12,
