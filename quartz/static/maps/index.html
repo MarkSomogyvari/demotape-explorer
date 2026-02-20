@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <title>Interactive Map</title>
@@ -34,6 +34,10 @@ iframe {
   width: 100%;
   height: 250px;
 }
+a {
+  text-decoration: none;
+  color: #284b63;
+}
 </style>
 </head>
 
@@ -46,14 +50,16 @@ iframe {
 </div>
 
 <script>
+/**
+ * Automatically detect repo base path.
+ * Works both locally and on GitHub Pages.
+ */
+const repoBase = "/" + window.location.pathname.split('/')[1]; // e.g., "/demotape-explorer"
+
 const map = L.map('map').setView([0,0], 12);
 
-// Compute the repo base dynamically
-const repoBase = "/" + window.location.pathname.split('/')[1]; 
-// e.g., "/demotape-explorer" on GitHub Pages
-
-// Raster tiles (relative to map HTML file)
-L.tileLayer('tiles/{z}/{x}/{y}.png', {
+// Raster tiles
+L.tileLayer(`${repoBase}/tiles/{z}/{x}/{y}.png`, {
   minZoom: 8,
   maxZoom: 16,
   noWrap: true
@@ -61,41 +67,46 @@ L.tileLayer('tiles/{z}/{x}/{y}.png', {
 
 let activeMarker = null;
 
-// Load GeoJSON points (cache-busting with ?v=timestamp)
-fetch(`${repoBase}/static/maps/data/points-ai.geojson?v=${Date.now()}`)
+// Load GeoJSON points
+fetch(`${repoBase}/data/points-ai.geojson?v=${Date.now()}`)
   .then(res => res.json())
   .then(data => {
     const geoLayer = L.geoJSON(data, {
       pointToLayer: (feature, latlng) => L.marker(latlng),
       onEachFeature: (feature, layer) => {
         layer.on('click', () => {
-          if (activeMarker) {
-            activeMarker.getElement().classList.remove('active');
-          }
+          // Highlight marker
+          if (activeMarker) activeMarker.getElement().classList.remove('active');
           activeMarker = layer;
           layer.getElement().classList.add('active');
 
-          // Load the markdown file
+          // Load Markdown content
           fetch(`${repoBase}/${feature.properties.content_file}?v=${Date.now()}`)
             .then(r => r.text())
             .then(md => {
               let html = marked.parse(md);
 
-              // Fix image paths to be repo-relative
+              // Fix image paths
               html = html.replace(/src="images\//g, `src="${repoBase}/images/`);
 
-              // Backlink to knowledge platform (repo-relative)
-              const backlink = `<div style="margin-bottom:10px;">
-                <a href="${repoBase}/index/" style="font-weight:bold;">← Back to Knowledge Platform</a>
-              </div>`;
+              // Backlink to Knowledge Platform
+              const backlink = `
+                <div style="margin-bottom: 10px;">
+                  <a href="${repoBase}/index/" style="font-weight: bold;">← Back to Knowledge Platform</a>
+                </div>
+              `;
 
-              document.getElementById('panel').innerHTML = backlink + html;
+              document.getElementById('panel').innerHTML = `
+                ${backlink}
+                <h2>${feature.properties.title}</h2>
+                ${html}
+              `;
             });
         });
       }
     }).addTo(map);
 
-    // Optional: fit map to markers
+    // Optional: fit map to bounds
     // map.fitBounds(geoLayer.getBounds());
   });
 </script>
