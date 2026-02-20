@@ -4,9 +4,11 @@
 <meta charset="utf-8">
 <title>Interactive Map</title>
 
+<!-- Leaflet CSS & JS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
+<!-- Markdown parser -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <style>
@@ -33,49 +35,50 @@ iframe {
   width: 100%;
   height: 250px;
 }
-a {
-  text-decoration: none;
-  color: #284b63;
-}
-.leaflet-marker-icon.active {
-  filter: drop-shadow(0 0 6px #ff0);
+a.backlink {
+  font-weight: bold;
+  display: inline-block;
+  margin-bottom: 10px;
 }
 </style>
 </head>
 
 <body>
-
 <div id="map"></div>
 <div id="panel">
+  <a href="#" class="backlink">← Back to Knowledge Platform</a>
   <h2>Welcome</h2>
   <p>Click a marker to load content.</p>
 </div>
 
 <script>
-/**
- * More robust GitHub Pages repo base detection
- * Works for:
- *   - username.github.io/repo/
- *   - username.github.io/
- */
-const pathParts = window.location.pathname.split('/').filter(Boolean);
-const repoBase = pathParts.length > 1 ? `/${pathParts[0]}` : "";
+const map = L.map('map').setView([0,0], 12);
 
-// Track active marker
-let activeMarker = null;
-
-// Initialize map
-const map = L.map('map').setView([0, 0], 12);
-
-// Raster tiles
-L.tileLayer(`${repoBase}/static/maps/tiles/{z}/{x}/{y}.png`, {
+// Your raster tiles
+L.tileLayer('tiles/{z}/{x}/{y}.png', {
   minZoom: 8,
   maxZoom: 16,
   noWrap: true
 }).addTo(map);
 
-// Load GeoJSON
-fetch(`${repoBase}/static/maps/data/points-ai.geojson?v=${Date.now()}`)
+let activeMarker = null;
+
+// ---- Determine baseUrl dynamically ----
+// Local dev: hostname = localhost → use relative paths
+// GitHub Pages: origin + /docs or origin + /repo-name
+const hostname = window.location.hostname;
+let baseUrl;
+if (hostname === "localhost") {
+  baseUrl = ""; // local dev
+} else {
+  // GitHub Pages: adjust "/docs" if your site is served from a folder
+  baseUrl = window.location.origin + window.location.pathname.split('/')[1] === "docs" 
+    ? window.location.origin + "/docs" 
+    : window.location.origin + "/" + window.location.pathname.split('/')[1];
+}
+
+// ---- Load GeoJSON points ----
+fetch(`${baseUrl}/static/maps/data/points-ai.geojson?v=${Date.now()}`)
   .then(res => res.json())
   .then(data => {
     const geoLayer = L.geoJSON(data, {
@@ -83,58 +86,36 @@ fetch(`${repoBase}/static/maps/data/points-ai.geojson?v=${Date.now()}`)
       onEachFeature: (feature, layer) => {
         layer.on('click', () => {
 
-          // Highlight marker safely
-          if (activeMarker && activeMarker._icon) {
-            activeMarker._icon.classList.remove('active');
-          }
+          // Highlight marker
+          if (activeMarker) activeMarker.getElement().classList.remove('active');
           activeMarker = layer;
-          if (layer._icon) {
-            layer._icon.classList.add('active');
-          }
+          layer.getElement().classList.add('active');
 
-          // Markdown path
-          const mdPath = `${repoBase}/static/maps/${feature.properties.content_file}?v=${Date.now()}`;
-
-          fetch(mdPath)
+          // Load markdown for this marker
+          fetch(`${baseUrl}/static/maps/${feature.properties.content_file}?v=${Date.now()}`)
             .then(r => r.text())
             .then(md => {
-              let html = marked.parse(md);
+              const html = marked.parse(md);
 
-              // Fix relative image paths
-              html = html.replace(/src="(?:\.\/)?images\//g, `src="${repoBase}/static/maps/images/`);
+              // Fix image paths
+              const fixedHtml = html.replace(/src="images\//g, `${baseUrl}/images/`);
 
-              const backlink = `
-                <div style="margin-bottom:10px;">
-                  <a href="${repoBase}/index/" style="font-weight:bold;">← Back to Knowledge Platform</a>
-                </div>`;
+              // Backlink to Quartz homepage
+              const homeUrl = `${baseUrl}/index/`;
 
               document.getElementById('panel').innerHTML = `
-                ${backlink}
+                <a href="${homeUrl}" class="backlink">← Back to Knowledge Platform</a>
                 <h2>${feature.properties.title}</h2>
-                ${html}
-              `;
-            })
-            .catch(err => {
-              document.getElementById('panel').innerHTML = `
-                <div style="margin-bottom:10px;">
-                  <a href="${repoBase}/index/" style="font-weight:bold;">← Back to Knowledge Platform</a>
-                </div>
-                <h2>${feature.properties.title}</h2>
-                <p style="color:red;">Error loading content: ${err.message}</p>
+                ${fixedHtml}
               `;
             });
+
         });
       }
     }).addTo(map);
 
-    // Fit bounds
-    const bounds = geoLayer.getBounds();
-    if (bounds.isValid()) map.fitBounds(bounds);
-  })
-  .catch(err => {
-    console.error("Error loading GeoJSON:", err);
-    document.getElementById('panel').innerHTML =
-      `<p style="color:red;">Failed to load map points.</p>`;
+    // Optional: fit map to all points
+    // map.fitBounds(geoLayer.getBounds());
   });
 </script>
 
