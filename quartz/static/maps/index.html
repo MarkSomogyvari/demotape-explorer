@@ -1,9 +1,66 @@
-const repoBase = "/" + window.location.pathname.split('/')[1]; // "/demotape-explorer"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Interactive Map</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<!-- Markdown parser -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<style>
+body {
+  margin: 0;
+  display: flex;
+  height: 100vh;
+  font-family: Arial, sans-serif;
+}
+#map {
+  width: 65%;
+  height: 100%;
+}
+#panel {
+  width: 35%;
+  padding: 15px;
+  overflow-y: auto;
+  border-left: 2px solid #ccc;
+}
+img {
+  max-width: 100%;
+}
+iframe {
+  width: 100%;
+  height: 250px;
+}
+a {
+  text-decoration: none;
+  color: #284b63;
+}
+</style>
+</head>
+
+<body>
+
+<div id="map"></div>
+<div id="panel">
+  <h2>Welcome</h2>
+  <p>Click a marker to load content.</p>
+</div>
+
+<script>
+/**
+ * Automatically detect repo base path for GitHub Pages
+ */
+const repoBase = "/" + window.location.pathname.split('/')[1]; // e.g., "/demotape-explorer"
+
+let activeMarker = null;
 
 // Initialize map
 const map = L.map('map').setView([0,0], 12);
 
-// Raster tiles — point to built location
+// Raster tiles
 L.tileLayer(`${repoBase}/static/maps/tiles/{z}/{x}/{y}.png`, {
   minZoom: 8,
   maxZoom: 16,
@@ -18,6 +75,7 @@ fetch(`${repoBase}/static/maps/data/points-ai.geojson?v=${Date.now()}`)
       pointToLayer: (feature, latlng) => L.marker(latlng),
       onEachFeature: (feature, layer) => {
         layer.on('click', () => {
+
           // Highlight marker
           if (activeMarker) activeMarker.getElement().classList.remove('active');
           activeMarker = layer;
@@ -34,7 +92,7 @@ fetch(`${repoBase}/static/maps/data/points-ai.geojson?v=${Date.now()}`)
               // Fix image paths
               html = html.replace(/src="images\//g, `src="${repoBase}/static/maps/images/`);
 
-              // Backlink
+              // Backlink to Knowledge Platform
               const backlink = `<div style="margin-bottom:10px;">
                   <a href="${repoBase}/index/" style="font-weight:bold;">← Back to Knowledge Platform</a>
                 </div>`;
@@ -58,5 +116,14 @@ fetch(`${repoBase}/static/maps/data/points-ai.geojson?v=${Date.now()}`)
       }
     }).addTo(map);
 
+    // Fit map to bounds if points exist
     if (geoLayer.getBounds().isValid()) map.fitBounds(geoLayer.getBounds());
+  })
+  .catch(err => {
+    console.error("Error loading GeoJSON:", err);
+    document.getElementById('panel').innerHTML = `<p style="color:red;">Failed to load map points.</p>`;
   });
+</script>
+
+</body>
+</html>
