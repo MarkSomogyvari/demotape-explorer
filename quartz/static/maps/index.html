@@ -49,11 +49,11 @@ iframe {
 
 
 <script>
-const map = L.map('map').setView([0,0], 14);
+const map = L.map('map').setView([0.05,0], 13);
 
 // your raster tiles
 L.tileLayer('tiles/{z}/{x}/{y}.png', {
-  minZoom: 8,
+  minZoom: 12,
   maxZoom: 16,
   noWrap: true
 }).addTo(map);
@@ -93,7 +93,7 @@ fetch('data/points-ai.geojson' + "?v=" + Date.now())
 
 			//Backlink to wiki start
 			const base = window.location.origin;
-			const homeUrl = base + "/demotape-explorer/index/";
+			const homeUrl = base + "/demotape-explorer/";
 
 			document.getElementById('panel').innerHTML = `
 			  <div style="margin-bottom: 10px;">
