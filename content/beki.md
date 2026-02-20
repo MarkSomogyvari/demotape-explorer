@@ -1,7 +1,16 @@
-# Bridge
+---
+title: Beki catchment
+---
+
+# Geography
 
 _This is a bridge on the Beki river_
 
-![Beki](images/beki.jpg)
+![Beki](/images/beki.jpg)
 
-Related: [[jeker]]
+
+[[beki_1|Bridge]]
+[[beki_2|Embankment]]
+[[beki_3|Dam]]
+
+
