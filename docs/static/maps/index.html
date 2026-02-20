@@ -4,12 +4,13 @@
 <meta charset="utf-8">
 <title>Interactive Map</title>
 
-<!-- Leaflet CSS & JS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <!-- Markdown parser -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!-- Frontmatter parser -->
+<script src="https://cdn.jsdelivr.net/npm/gray-matter@4.0.3/dist/gray-matter.min.js"></script>
 
 <style>
 body {
@@ -18,44 +19,35 @@ body {
   height: 100vh;
   font-family: Arial, sans-serif;
 }
-#map {
-  width: 65%;
-  height: 100%;
-}
+#map { width: 65%; height: 100%; }
 #panel {
   width: 35%;
   padding: 15px;
   overflow-y: auto;
   border-left: 2px solid #ccc;
 }
-img {
-  max-width: 100%;
-}
-iframe {
-  width: 100%;
-  height: 250px;
-}
-a.backlink {
-  font-weight: bold;
-  display: inline-block;
-  margin-bottom: 10px;
-}
+img { max-width: 100%; }
+iframe { width: 100%; height: 250px; }
+a { text-decoration: none; color: #284b63; }
 </style>
 </head>
 
 <body>
+
 <div id="map"></div>
 <div id="panel">
-  <a href="#" class="backlink">← Back to Knowledge Platform</a>
   <h2>Welcome</h2>
   <p>Click a marker to load content.</p>
 </div>
 
 <script>
+// Automatically detect repo base path
+const repoBase = "/" + window.location.pathname.split('/')[1]; // e.g., "/demotape-explorer"
+
 const map = L.map('map').setView([0,0], 12);
 
-// Your raster tiles
-L.tileLayer('tiles/{z}/{x}/{y}.png', {
+// Raster tiles
+L.tileLayer(`${repoBase}/tiles/{z}/{x}/{y}.png`, {
   minZoom: 8,
   maxZoom: 16,
   noWrap: true
@@ -63,58 +55,51 @@ L.tileLayer('tiles/{z}/{x}/{y}.png', {
 
 let activeMarker = null;
 
-// ---- Determine baseUrl dynamically ----
-// Local dev: hostname = localhost → use relative paths
-// GitHub Pages: origin + /docs or origin + /repo-name
-const hostname = window.location.hostname;
-let baseUrl;
-if (hostname === "localhost") {
-  baseUrl = ""; // local dev
-} else {
-  // GitHub Pages: adjust "/docs" if your site is served from a folder
-  baseUrl = window.location.origin + window.location.pathname.split('/')[1] === "docs" 
-    ? window.location.origin + "/docs" 
-    : window.location.origin + "/" + window.location.pathname.split('/')[1];
-}
-
-// ---- Load GeoJSON points ----
-fetch(`${baseUrl}/static/maps/data/points-ai.geojson?v=${Date.now()}`)
+// Load GeoJSON points
+fetch(`${repoBase}/data/points-ai.geojson?v=${Date.now()}`)
   .then(res => res.json())
   .then(data => {
     const geoLayer = L.geoJSON(data, {
       pointToLayer: (feature, latlng) => L.marker(latlng),
       onEachFeature: (feature, layer) => {
         layer.on('click', () => {
-
-          // Highlight marker
           if (activeMarker) activeMarker.getElement().classList.remove('active');
           activeMarker = layer;
           layer.getElement().classList.add('active');
 
-          // Load markdown for this marker
-          fetch(`${baseUrl}/static/maps/${feature.properties.content_file}?v=${Date.now()}`)
+          // Fetch Markdown file
+          fetch(`${repoBase}/${feature.properties.content_file}?v=${Date.now()}`)
             .then(r => r.text())
             .then(md => {
-              const html = marked.parse(md);
+              // Parse frontmatter
+              const matterResult = window.matter(md);
+              const content = matterResult.content; // Markdown content without frontmatter
+              const title = matterResult.data.title || feature.properties.title;
+
+              // Render Markdown
+              let html = marked.parse(content);
 
               // Fix image paths
-              const fixedHtml = html.replace(/src="images\//g, `${baseUrl}/images/`);
+              html = html.replace(/src="images\//g, `src="${repoBase}/images/`);
 
-              // Backlink to Quartz homepage
-              const homeUrl = `${baseUrl}/index/`;
+              // Backlink
+              const backlink = `
+                <div style="margin-bottom: 10px;">
+                  <a href="${repoBase}/index/" style="font-weight: bold;">← Back to Knowledge Platform</a>
+                </div>
+              `;
 
               document.getElementById('panel').innerHTML = `
-                <a href="${homeUrl}" class="backlink">← Back to Knowledge Platform</a>
-                <h2>${feature.properties.title}</h2>
-                ${fixedHtml}
+                ${backlink}
+                <h2>${title}</h2>
+                ${html}
               `;
             });
-
         });
       }
     }).addTo(map);
 
-    // Optional: fit map to all points
+    // Optional: fit map to bounds
     // map.fitBounds(geoLayer.getBounds());
   });
 </script>
