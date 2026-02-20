@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-<!-- Markdown parser -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <style>
@@ -38,6 +37,9 @@ a {
   text-decoration: none;
   color: #284b63;
 }
+.leaflet-marker-icon.active {
+  filter: drop-shadow(0 0 6px #ff0);
+}
 </style>
 </head>
 
@@ -51,14 +53,19 @@ a {
 
 <script>
 /**
- * Automatically detect repo base path for GitHub Pages
+ * More robust GitHub Pages repo base detection
+ * Works for:
+ *   - username.github.io/repo/
+ *   - username.github.io/
  */
-const repoBase = "/" + window.location.pathname.split('/')[1]; // e.g., "/demotape-explorer"
+const pathParts = window.location.pathname.split('/').filter(Boolean);
+const repoBase = pathParts.length > 1 ? `/${pathParts[0]}` : "";
 
+// Track active marker
 let activeMarker = null;
 
 // Initialize map
-const map = L.map('map').setView([0,0], 12);
+const map = L.map('map').setView([0, 0], 12);
 
 // Raster tiles
 L.tileLayer(`${repoBase}/static/maps/tiles/{z}/{x}/{y}.png`, {
@@ -67,7 +74,7 @@ L.tileLayer(`${repoBase}/static/maps/tiles/{z}/{x}/{y}.png`, {
   noWrap: true
 }).addTo(map);
 
-// Load GeoJSON points
+// Load GeoJSON
 fetch(`${repoBase}/static/maps/data/points-ai.geojson?v=${Date.now()}`)
   .then(res => res.json())
   .then(data => {
@@ -76,12 +83,16 @@ fetch(`${repoBase}/static/maps/data/points-ai.geojson?v=${Date.now()}`)
       onEachFeature: (feature, layer) => {
         layer.on('click', () => {
 
-          // Highlight marker
-          if (activeMarker) activeMarker.getElement().classList.remove('active');
+          // Highlight marker safely
+          if (activeMarker && activeMarker._icon) {
+            activeMarker._icon.classList.remove('active');
+          }
           activeMarker = layer;
-          layer.getElement().classList.add('active');
+          if (layer._icon) {
+            layer._icon.classList.add('active');
+          }
 
-          // Markdown path in built site
+          // Markdown path
           const mdPath = `${repoBase}/static/maps/${feature.properties.content_file}?v=${Date.now()}`;
 
           fetch(mdPath)
@@ -89,11 +100,11 @@ fetch(`${repoBase}/static/maps/data/points-ai.geojson?v=${Date.now()}`)
             .then(md => {
               let html = marked.parse(md);
 
-              // Fix image paths
-              html = html.replace(/src="images\//g, `src="${repoBase}/static/maps/images/`);
+              // Fix relative image paths
+              html = html.replace(/src="(?:\.\/)?images\//g, `src="${repoBase}/static/maps/images/`);
 
-              // Backlink to Knowledge Platform
-              const backlink = `<div style="margin-bottom:10px;">
+              const backlink = `
+                <div style="margin-bottom:10px;">
                   <a href="${repoBase}/index/" style="font-weight:bold;">← Back to Knowledge Platform</a>
                 </div>`;
 
@@ -116,12 +127,14 @@ fetch(`${repoBase}/static/maps/data/points-ai.geojson?v=${Date.now()}`)
       }
     }).addTo(map);
 
-    // Fit map to bounds if points exist
-    if (geoLayer.getBounds().isValid()) map.fitBounds(geoLayer.getBounds());
+    // Fit bounds
+    const bounds = geoLayer.getBounds();
+    if (bounds.isValid()) map.fitBounds(bounds);
   })
   .catch(err => {
     console.error("Error loading GeoJSON:", err);
-    document.getElementById('panel').innerHTML = `<p style="color:red;">Failed to load map points.</p>`;
+    document.getElementById('panel').innerHTML =
+      `<p style="color:red;">Failed to load map points.</p>`;
   });
 </script>
 
