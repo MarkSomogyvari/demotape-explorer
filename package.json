@@ -12,9 +12,9 @@
     "url": "https://github.com/jackyzha0/quartz.git"
   },
   "scripts": {
-	"quartz": "node ./quartz/bootstrap-cli.mjs",
 	"sync-map": "node sync-map-content.js",
-	"docs": "npm run sync-map && npm run quartz -- build --serve",
+	"docs": "npm run sync-map && node ./quartz/bootstrap-cli.mjs build --serve",
+	"build": "npm run sync-map && node ./quartz/bootstrap-cli.mjs build",
 	"check": "tsc --noEmit && npx prettier . --check",
 	"format": "npx prettier . --write",
 	"test": "tsx --test",

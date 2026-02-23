@@ -10,6 +10,7 @@ const config: QuartzConfig = {
   configuration: {
     pageTitle: "Quartz 4",
     pageTitleSuffix: "",
+	enableStaticOutput: true,
     enableSPA: true,
     enablePopovers: true,
     analytics: {

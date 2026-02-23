@@ -9,9 +9,9 @@ import * as Plugin from "./quartz/plugins"
 const config: QuartzConfig = {
   configuration: {
 	contentDir: "../content",
-	outputDir: "../../docs",   // <-- move output to root
+	outputDir: "../docs",   // <-- move output to root
 	enableStaticOutput: true, 
-    pageTitle: "Quartz 4",
+    pageTitle: "DEMOTAPE",
     pageTitleSuffix: "",
     enableSPA: false,
     enablePopovers: true,
