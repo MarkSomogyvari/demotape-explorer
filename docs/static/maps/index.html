@@ -89,10 +89,23 @@ fetch('data/points-ai.geojson' + "?v=" + Date.now())
             .then(md => {
 			const repoName = window.location.pathname.split('/')[1];
 
-			const html = marked.parse(md);
+			//fix obsidian links
+			function convertWikilinks(md) {
+			  const siteBase = "https://marksomogyvari.github.io/demotape-explorer/";
+
+			  return md.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (match, target, alias) => {
+				const slug = target.trim();
+				const text = alias ? alias.trim() : target.trim();
+
+				return `<a href="${siteBase}${slug}">${text}</a>`;
+			  });
+			}
+
+			const fixedMd = convertWikilinks(md);
+			const html = marked.parse(fixedMd);
 
 			// fix image paths
-			const fixedHtml = html.replace(/src="images\//g, `src="/${repoName}/images/`);
+			const fixedHtml = html.replace(/src="images\//g, `src="/${repoName}/demotape-explorer/images/`);
 
 
 			//Backlink to wiki start
