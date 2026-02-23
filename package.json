@@ -12,13 +12,12 @@
     "url": "https://github.com/jackyzha0/quartz.git"
   },
   "scripts": {
-	"sync-map": "node sync-map-content.js",
-	"docs": "npm run sync-map && node ./quartz/bootstrap-cli.mjs build --serve",
-	"build": "npm run sync-map && node ./quartz/bootstrap-cli.mjs build",
-	"check": "tsc --noEmit && npx prettier . --check",
-	"format": "npx prettier . --write",
-	"test": "tsx --test",
-	"profile": "0x -D prof ./quartz/bootstrap-cli.mjs build --concurrency=1"
+    "quartz": "node ./quartz/bootstrap-cli.mjs",
+    "sync-map": "node sync-map-content.js",
+    "docs": "npm run sync-map && npm run build-and-rename",
+    "build-and-rename": "npx quartz build && node rename-public.js",
+    "check": "tsc --noEmit && npx prettier . --check",
+    "format": "npx prettier . --write"
 	},
   "engines": {
     "npm": ">=10.9.2",
