@@ -1,3 +1,7 @@
+---
+title: Home
+---
+
 # Welcome to the DEMOTAPE knowledge platform
 
 _For a map view, click here:_
