@@ -1,9 +1,0 @@
-{
-"type": "FeatureCollection",
-"name": "points3",
-"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
-"features": [
-{ "type": "Feature", "properties": { "title": "Barpeta bridge", "content_file": "content/beki.md"}, "geometry": { "type": "Point", "coordinates": [ -39.13103384575188, 20.452271061006989 ] } },
-{ "type": "Feature", "properties": { "title": "Jeker", "content_file": "content/jeker.md"}, "geometry": { "type": "Point", "coordinates": [ -40.291688060671767, 20.053409150158394 ] } }
-]
-}

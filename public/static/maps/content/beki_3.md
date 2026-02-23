@@ -1,1 +1,0 @@
-# Kurichu dam
