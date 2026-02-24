@@ -2,9 +2,8 @@
 title: DEMOTAPE
 ---
 
-# DEMOTAPE
 
-Welcome to the DEMOTAPE knowledge platform
+__Welcome to the DEMOTAPE knowledge platform__
 
 This site connects:
 - 📚 archival material  
@@ -17,14 +16,13 @@ This site connects:
 
 <a href="static/maps/index.html" onclick="window.location.href=this.href; return false;">Interactive Map</a>
 
-👉 [Open the map](./static/maps/map.html)
 
 ---
 
 
-## Start here
- - [[beki]]
- - [[jeker]]
+## Categories
+ - [[beki|Beki catchment]]
+ - [[jeker|Jeker catchment]]
 
 ---
 
