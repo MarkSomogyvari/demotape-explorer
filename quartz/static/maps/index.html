@@ -105,7 +105,11 @@ fetch('data/points-ai.geojson' + "?v=" + Date.now())
 			const html = marked.parse(fixedMd);
 
 			// fix image paths
-			const fixedHtml = html.replace(/src="images\//g, `src="/${repoName}/images/`);
+			const basePath = window.location.origin + "/" + window.location.pathname.split('/')[1];
+
+			const fixedHtml = html
+			  .replace(/src="images\//g, `src="${basePath}/images/`)
+			  .replace(/href="images\//g, `href="${basePath}/images/`);
 
 
 			//Backlink to wiki start
