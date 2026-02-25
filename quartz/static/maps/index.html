@@ -103,8 +103,6 @@ fetch('data/points-ai.geojson' + "?v=" + Date.now())
 
 			const fixedMd = convertWikilinks(md);
 			const html = marked.parse(fixedMd);
-			// temporary line:
-			console.log(html.match(/<img[^>]+>/g));
 
 			// fix image paths
 			// derive correct site root from current URL
